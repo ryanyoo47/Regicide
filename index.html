@@ -79,17 +79,7 @@
 
 </head>
 <body>
-<div id="jsHelp" style="display:none; position:fixed; inset:0; background:rgba(4,6,10,.95); color:#fff; z-index:9999; padding:24px; overflow:auto">
-  <h2 style="margin-top:0">One quick step: open in Safari</h2>
-  <p>If the <b>New Game</b> button does nothing or your hand is blank, you're likely viewing this file in the iPhone <b>Files</b> preview, which blocks interactive JavaScript.</p>
-  <ol>
-    <li>Tap the <b>share</b> icon.</li>
-    <li>Choose <b>Open in Safari</b>.</li>
-    <li>In Safari, tap the share icon again → <b>Add to Home Screen</b> (optional) for full‑screen play.</li>
-  </ol>
-  <p style="opacity:.8">Once opened in Safari, everything (New Game, hand, play buttons) will work.</p>
-  <button onclick="this.parentElement.style.display='none'" class="btn" style="margin-top:10px">Got it</button>
-</div>
+
 <header>
   <h1>Ryan's Regicide</h1>
   <button class="btn" id="newGameBtn">New Game</button>
@@ -165,21 +155,7 @@
 
 <script>
 // Quick check: if New Game hasn't wired up (e.g., Files preview blocking JS), show help overlay.
-window.addEventListener('load', ()=>{
-  setTimeout(()=>{
-    try{
-      const btn = document.getElementById('newGameBtn');
-      const hand = document.getElementById('hand');
-      // If button exists but no cards and no tavern count updated, show overlay.
-      const tavernCount = document.getElementById('tavernCount');
-      const seemsStatic = tavernCount && tavernCount.textContent==='0' && (!hand || hand.children.length===0);
-      if(seemsStatic){
-        const help = document.getElementById('jsHelp');
-        if(help) help.style.display='block';
-      }
-    }catch(e){ /* ignore */ }
-  }, 800);
-});
+
 
 /* ===== Utilities ===== */
 const SUITS = ["♣","♦","♥","♠"];
