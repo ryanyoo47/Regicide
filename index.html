@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ryan's Regicide</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#151c24;
+    --accent:#4da3ff;
+    --text:#e9f2ff;
+    --muted:#9fb4cc;
+    --danger:#ff5d6c;
+    --success:#5dffaa;
+    --warn:#ffd166;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+    background: linear-gradient(180deg, #0b0f14, #0e141b 40%, #0b0f14);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  header{
+    position: sticky; top: 0;
+    background: rgba(10,14,20,.9);
+    backdrop-filter: blur(6px);
+    z-index: 10;
+    border-bottom: 1px solid #1b2633;
+    padding: 10px 14px;
+    display:flex; align-items:center; gap:10px; justify-content:space-between;
+  }
+  h1{font-size: 18px; margin:0; letter-spacing:.3px}
+  .btn{appearance:none; border:none; border-radius:12px; padding:12px 14px; font-weight:600; color:#051017; background: var(--accent);}
+  .btn:disabled{opacity:.45}
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .toolbar .btn{padding:10px 12px;border-radius:10px}
+  .container{padding: 12px}
+  .panel{background: var(--panel); border:1px solid #1a2431; border-radius:16px; padding:12px;}
+  .section-title{font-size:13px; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin:0 0 6px}
+  .enemy{display:flex; gap:12px; align-items:center}
+  .stat{background:#0e141c; border:1px solid #1f2a3a; padding:10px; border-radius:12px; min-width:84px; text-align:center}
+  .stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.18em}
+  .stat .value{font-size:18px;font-weight:800;margin-top:4px}
+  .meter{height:10px; background:#0c1320; border:1px solid #1b2740; border-radius:999px; overflow:hidden}
+  .meter > i{display:block; height:100%; background:linear-gradient(90deg,#4da3ff,#5dffaa); width:50%}
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #213146; background:#0e1520; color:var(--muted); font-size:12px}
+  .pile{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .pile .card-back, .card{width:68px;height:96px; border-radius:12px; border:2px solid #2a3b53; background:linear-gradient(180deg,#182434,#0f1826); display:grid; place-items:center; font-weight:800; box-shadow:0 2px 0 rgba(0,0,0,.4)}
+  .card-back::after{content:"🂠"; font-size:20px; filter:drop-shadow(0 1px 0 #000)}
+  .counts{font-size:12px;color:var(--muted)}
+  .hand{display:flex; gap:10px; overflow-x:auto; padding:10px 6px; min-height:110px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid #1a2431}
+  .card{background:linear-gradient(180deg,#121a25,#0d131c); position:relative; user-select:none}
+  .card .rank{position:absolute; left:6px; top:6px; font-size:16px; font-weight:900; text-shadow:0 1px 0 #000}
+  .card .suit{font-size:26px; filter:drop-shadow(0 1px 0 #000)}
+  .card.red{color:#ffd0d8}
+  .card.black{color:#e5f1ff}
+  .card.selected{outline:3px solid var(--accent); transform: translateY(-4px);}
+  .card.disabled{opacity:.35}
+  .big{font-size:22px; font-weight:800}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+  .toolbar .btn.secondary{background:#1a2533; color:#cde0ff; border:1px solid #27364a}
+  .toolbar .btn.warn{background:var(--warn)}
+  .toolbar .btn.danger{background:var(--danger)}
+  .log{max-height:30vh; overflow:auto; font-size:13px; line-height:1.35; padding-right:4px}
+  .log p{margin:.4em 0}
+  footer{padding:14px; color:var(--muted); font-size:12px; text-align:center}
+  .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#152233; border:1px solid #22344a; color:#cfe8ff; font-size:12px}
+  .hint{color:#bcd2eb; font-size:12px}
+  .link{color:#8ec0ff; text-decoration:underline}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0f14">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+</head>
+<body>
+<div id="jsHelp" style="display:none; position:fixed; inset:0; background:rgba(4,6,10,.95); color:#fff; z-index:9999; padding:24px; overflow:auto">
+  <h2 style="margin-top:0">One quick step: open in Safari</h2>
+  <p>If the <b>New Game</b> button does nothing or your hand is blank, you're likely viewing this file in the iPhone <b>Files</b> preview, which blocks interactive JavaScript.</p>
+  <ol>
+    <li>Tap the <b>share</b> icon.</li>
+    <li>Choose <b>Open in Safari</b>.</li>
+    <li>In Safari, tap the share icon again → <b>Add to Home Screen</b> (optional) for full‑screen play.</li>
+  </ol>
+  <p style="opacity:.8">Once opened in Safari, everything (New Game, hand, play buttons) will work.</p>
+  <button onclick="this.parentElement.style.display='none'" class="btn" style="margin-top:10px">Got it</button>
+</div>
+<header>
+  <h1>Ryan's Regicide</h1>
+  <button class="btn" id="newGameBtn">New Game</button>
+</header>
+
+<div class="container">
+  <div class="panel">
+    <p class="section-title">Enemy</p>
+    <div class="enemy">
+      <div class="card" id="enemyCard" aria-label="Enemy card">
+        <div class="rank" id="enemyRank">J</div>
+        <div class="suit" id="enemySuit">♣</div>
+      </div>
+      <div class="grid">
+        <div class="stat">
+          <div class="label">Health</div>
+          <div class="value" id="hpText">20</div>
+          <div class="meter"><i id="hpBar" style="width:100%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="label">Attack</div>
+          <div class="value" id="atkText">10</div>
+          <div class="hint" id="shieldHint"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="badge">Immunity: <b id="immuneSuit">♣</b></span>
+      <span class="badge">Spade shield: <b id="spadeShield">0</b></span>
+      <span class="badge">Damage dealt: <b id="damageSoFar">0</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="section-title">Tavern, Discard & Jester Flips</p>
+    <div class="pile">
+      <div class="card-back" title="Tavern deck"></div><div class="counts">Tavern: <b id="tavernCount">0</b></div>
+      <div class="card-back" title="Castle deck"></div><div class="counts">Castle: <b id="castleCount">12</b></div>
+      <div class="card-back" title="Discard"></div><div class="counts">Discard: <b id="discardCount">0</b></div>
+      <span class="badge">Jester flips: <b id="jesterFlips">2</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="section-title">Your Hand (tap to select) — <span class="counts">Count: <b id="handCount">0</b></span></p>
+    <div class="hand" id="hand" aria-label="Your hand"></div>
+    <div class="hint" id="handEmptyHint" style="display:none">Your hand is empty. Use ♦ draw effects or a Jester flip to refill to 8.</div>
+    <div class="hint" style="margin-top:6px">
+      Combos: play sets of the same rank whose total ≤ 10 (e.g., 5+5, 3+3+3, 2+2+2+2). Aces (A) are Animal Companions: value 1; may be paired with exactly one other card (not part of combos).
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="section-title">Actions</p>
+    <div class="toolbar">
+      <button class="btn" id="playBtn">Play Selected</button>
+      <button class="btn secondary" id="yieldBtn">Yield (take damage)</button>
+      <button class="btn warn" id="flipJesterBtn">Flip Jester (discard & refill to 8)</button>
+      <button class="btn secondary" id="rulesBtn">Rules Ref</button>
+      <button class="btn danger" id="undoBtn">Undo Step</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="section-title">Log</p>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<footer>
+  Unofficial fan-made solo helper that uses a standard 52-card deck model. Based on the official rules by Badgers from Mars (Regicide). All rights to their IP remain with their owners.
+</footer>
+
+<script>
+// Quick check: if New Game hasn't wired up (e.g., Files preview blocking JS), show help overlay.
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    try{
+      const btn = document.getElementById('newGameBtn');
+      const hand = document.getElementById('hand');
+      // If button exists but no cards and no tavern count updated, show overlay.
+      const tavernCount = document.getElementById('tavernCount');
+      const seemsStatic = tavernCount && tavernCount.textContent==='0' && (!hand || hand.children.length===0);
+      if(seemsStatic){
+        const help = document.getElementById('jsHelp');
+        if(help) help.style.display='block';
+      }
+    }catch(e){ /* ignore */ }
+  }, 800);
+});
+
+/* ===== Utilities ===== */
+const SUITS = ["♣","♦","♥","♠"];
+const COLORS = {"♣":"black","♠":"black","♦":"red","♥":"red"};
+const RANKS = ["2","3","4","5","6","7","8","9","10","A"]; // Tavern ranks (A = Animal Companion)
+const ROYAL_RANKS = ["J","Q","K"];
+const ENEMY_STATS = { "J":{hp:20, atk:10}, "Q":{hp:30, atk:15}, "K":{hp:40, atk:20} };
+const MAX_HAND = 8;
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()* (i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+function clone(o){ return JSON.parse(JSON.stringify(o)) }
+
+function cardValue(card){
+  // For play/attack: numeric ranks = number; A=1; Royals when in hand are 10/15/20
+  if(ROYAL_RANKS.includes(card.rank)){
+    return card.rank==="J"?10:card.rank==="Q"?15:20;
+  }
+  if(card.rank==="A") return 1;
+  return parseInt(card.rank,10);
+}
+
+function renderCard(card){
+  const div = document.createElement("div");
+  div.className = `card ${COLORS[card.suit] || 'black'}` + (card.disabled? " disabled": "");
+  div.dataset.rank = card.rank;
+  div.dataset.suit = card.suit;
+  div.dataset.id = card.id;
+  const r = document.createElement("div"); r.className="rank"; r.textContent = card.rank;
+  const s = document.createElement("div"); s.className="suit"; s.textContent = card.suit;
+  div.appendChild(r); div.appendChild(s);
+  return div;
+}
+
+function sum(arr){ return arr.reduce((a,b)=>a+b,0) }
+
+/* ===== Game State ===== */
+let state = null;
+let history = [];
+
+function pushHistory(){ history.push(clone(state)); if(history.length>50) history.shift() }
+function undo(){ if(history.length){ state = history.pop(); syncUI(true) } }
+
+function newGame(){
+  // Build castle deck: shuffle J/Q/K each, stack Jacks top, then Queens, then Kings
+  const jacks = shuffle(SUITS.map(s=>({rank:"J", suit:s, id:`J${s}`})));
+  const queens = shuffle(SUITS.map(s=>({rank:"Q", suit:s, id:`Q${s}`})));
+  const kings = shuffle(SUITS.map(s=>({rank:"K", suit:s, id:`K${s}`})));
+  const castle = [...jacks, ...queens, ...kings]; // top is index 0
+
+  // Tavern deck: 2-10 + 4 Aces, all suits (no Jesters in solo)
+  let tavern = [];
+  for(const r of RANKS){
+    for(const s of SUITS){
+      tavern.push({rank:r, suit:s, id:`${r}${s}-${Math.random().toString(36).slice(2,7)}`});
+    }
+  }
+  tavern = shuffle(tavern);
+
+  const hand = [];
+  const discard = [];
+  // Deal to hand up to 8
+  while(hand.length<MAX_HAND && tavern.length) hand.push(tavern.shift());
+
+  state = {
+    tavern, castle, discard, hand,
+    enemy: clone(castle[0]),
+    enemyDamage: 0,
+    spadeShield: 0,
+    jesterFlips: 2,
+    phase: "turnStart", // or "afterPlayBeforeDamage", etc.
+    selectedIds: [],
+    message: "Good luck!"
+  };
+  syncUI();
+  log(`New game. First enemy: ${state.enemy.rank} of ${state.enemy.suit}.`);
+}
+
+function currentEnemyStats(){
+  const base = ENEMY_STATS[state.enemy.rank];
+  return { hp: base.hp, atk: Math.max(0, base.atk - state.spadeShield) };
+}
+
+function enemyImmunitySuit(){ return state.enemy.suit }
+
+function canSelect(card){
+  if(card.disabled) return false;
+  // selection constraints handled dynamically when pressing "Play"
+  return true;
+}
+
+function getSelectedCards(){
+  return state.hand.filter(c=>state.selectedIds.includes(c.id));
+}
+
+function clearSelection(){ state.selectedIds = [] }
+
+function isComboSameRank(cards){
+  if(cards.length<2) return false;
+  const ranks = [...new Set(cards.map(c=>c.rank))];
+  if(ranks.length!==1) return false;
+  if(ranks[0]==="A" || ROYAL_RANKS.includes(ranks[0])) return false; // A can't be in combo; no royals in tavern anyway
+  // total value <=10
+  const total = sum(cards.map(cardValue));
+  return total <= 10;
+}
+
+function isValidPlay(cards){
+  // Options:
+  // 1) Single card (any from hand)
+  // 2) One non-ace + exactly one Ace (animal companion pairing)
+  // 3) Combo: 2-4 cards same rank, total value <=10 (no Aces allowed)
+  if(cards.length===0) return false;
+  if(cards.length===1) return true;
+
+  const ranks = [...new Set(cards.map(c=>c.rank))];
+  const hasAce = cards.some(c=>c.rank==="A");
+
+  if(cards.length===2){
+    // ace pairing OR pair combo of same rank totaling <=10
+    if(hasAce){
+      const other = cards.find(c=>c.rank!=="A");
+      return !!other && !ROYAL_RANKS.includes(other.rank);
+    }else{
+      return isComboSameRank(cards);
+    }
+  }
+  if(hasAce) return false; // Ace can only be paired with one other card
+
+  // 3 or 4: must be same rank and total <=10
+  return isComboSameRank(cards);
+}
+
+function playSelected(){
+  const sel = getSelectedCards();
+  if(!isValidPlay(sel)){ alert("Invalid selection. Combos must be same rank totaling ≤10. Aces can only pair with exactly one other card."); return; }
+
+  pushHistory();
+
+  // Compute attack value and suit powers
+  // When multiple suits, suit powers all apply at total attack value.
+  const totalAttack = sum(sel.map(cardValue));
+  const suits = [...new Set(sel.map(c=>c.suit))];
+  const immune = enemyImmunitySuit();
+  const immunityActive = (immune !== ""); // always an immunity to its suit
+  const immuneSuits = new Set([immune]);
+
+  let drawCards = 0;
+  let heartsHeal = 0;
+  let clubsDouble = false;
+  let spadesShieldAdd = 0;
+
+  // Suit powers apply; if enemy immune to that suit, skip applying that suit's power
+  for(const s of suits){
+    const apply = !(immunityActive && s===immune);
+    if(s==="♦"){ if(apply) drawCards = totalAttack; }
+    if(s==="♥"){ if(apply) heartsHeal = totalAttack; }
+    if(s==="♣"){ if(apply) clubsDouble = true; }
+    if(s==="♠"){ if(apply) spadesShieldAdd = totalAttack; }
+  }
+
+  // Apply red suits immediately (hearts then diamonds)
+  if(heartsHeal>0){
+    // Shuffle discard; take N to bottom of tavern
+    shuffle(state.discard);
+    const moved = [];
+    for(let i=0;i<heartsHeal && state.discard.length;i++){
+      moved.push(state.discard.shift());
+    }
+    // place under tavern
+    state.tavern.push(...moved);
+    log(`♥ Heal: moved ${moved.length} from discard under the Tavern.`);
+  }
+
+  if(drawCards>0){
+    let draws = drawCards;
+    // Draw up to max hand size (8). No penalty for empty deck.
+    let count = 0;
+    while(draws>0 && state.hand.length<MAX_HAND){
+      if(state.tavern.length===0) break;
+      state.hand.push(state.tavern.shift());
+      draws--; count++;
+    }
+    log(`♦ Draw: drew ${count} card${count!==1?"s":""}.`);
+  }
+
+  if(spadesShieldAdd>0){
+    state.spadeShield += spadesShieldAdd;
+    log(`♠ Shield: enemy attack reduced by ${spadesShieldAdd} (now -${state.spadeShield}).`);
+  }
+
+  // Damage step
+  let dmg = totalAttack;
+  if(clubsDouble){
+    dmg *= 2;
+    log(`♣ Double damage active. Attack ${totalAttack} → ${dmg}.`);
+  }
+
+  state.enemyDamage += dmg;
+
+  // Move played cards to discard (after resolution). Note: if enemy defeated exactly, played cards go to discard per rules.
+  state.discard.unshift(...sel); // put on top of discard
+  // Remove from hand
+  state.hand = state.hand.filter(c=>!state.selectedIds.includes(c.id));
+  clearSelection();
+
+  const estats = ENEMY_STATS[state.enemy.rank];
+  if(state.enemyDamage >= estats.hp){
+    const exact = state.enemyDamage === estats.hp;
+    // Enemy defeated
+    log(`💥 Defeated the ${state.enemy.rank} of ${state.enemy.suit}${exact?" (exact!)":""}.`);
+    // (i) place enemy in discard, or on top of tavern if exact kill (facedown, simulated by unshift)
+    if(exact){
+      // place facedown on top of Tavern -> in app, just put at top of draw pile
+      state.tavern.unshift(clone(state.enemy));
+      log(`Exact damage: ${state.enemy.rank} of ${state.enemy.suit} added to TOP of Tavern.`);
+    }else{
+      state.discard.unshift(clone(state.enemy));
+    }
+    // (ii) played cards already in discard
+    // (iii) reveal next enemy
+    state.castle.shift(); // remove current
+    if(state.castle.length===0){
+      // Win!
+      endGame(true);
+      return;
+    }
+    state.enemy = clone(state.castle[0]);
+    state.enemyDamage = 0;
+    state.spadeShield = 0;
+    // (iv) Skip damage and begin new turn
+    syncUI();
+    log(`Next enemy: ${state.enemy.rank} of ${state.enemy.suit}. You begin a new turn.`);
+    return;
+  }
+
+  // Enemy not defeated → suffer damage
+  sufferDamage();
+}
+
+function sufferDamage(){
+  // Step 4: discard cards totalling at least enemy attack (after shield). Royals in hand count 10/15/20 toward discard value.
+  const estats = currentEnemyStats();
+  const need = estats.atk;
+  if(need<=0){
+    log(`Enemy attack reduced to 0 — you take no damage.`);
+    syncUI();
+    return;
+  }
+
+  // Auto-discard assistant: prompt user to choose cards to discard until reaching >= need.
+  // For mobile simplicity, open a modal-like prompt that allows selecting cards; implement inline here using confirm loops.
+  let total = 0;
+  const toDiscard = [];
+  // Strategy: discard lowest values first (basic helper); user can Undo to choose differently.
+  const sorted = state.hand.slice().sort((a,b)=>cardValue(a)-cardValue(b));
+  for(const c of sorted){
+    if(total >= need) break;
+    toDiscard.push(c);
+    total += cardValue(c);
+  }
+  if(total < need){
+    // cannot satisfy -> lose
+    endGame(false);
+    return;
+  }
+  // Discard chosen
+  state.hand = state.hand.filter(c=>!toDiscard.some(d=>d.id===c.id));
+  state.discard.unshift(...toDiscard);
+  log(`☠️ Took ${need} damage. Discarded ${toDiscard.length} card(s) [${toDiscard.map(c=>c.rank+c.suit).join(", ")}].`);
+  syncUI();
+}
+
+function yieldTurn(){
+  // Solo: you can always yield unless (not applicable multi-player restriction). Move directly to suffer damage.
+  pushHistory();
+  log(`You yield.`);
+  sufferDamage();
+}
+
+function flipJester(){
+  if(state.jesterFlips<=0){ alert("No Jester flips remaining."); return; }
+  pushHistory();
+  state.jesterFlips--;
+  // Discard your hand, then refill to 8. This does not count as drawing (so allowed even vs Diamond enemies).
+  const count = state.hand.length;
+  state.discard.unshift(...state.hand);
+  state.hand = [];
+  let drew = 0;
+  while(state.hand.length<MAX_HAND && state.tavern.length){
+    state.hand.push(state.tavern.shift());
+    drew++;
+  }
+  log(`🤡 Jester flip used. Discarded ${count} from hand, refilled ${drew} to ${state.hand.length}.`);
+  syncUI();
+}
+
+function endGame(win){
+  if(win){
+    const used = 2 - state.jesterFlips;
+    const medal = used===0 ? "🥇 Gold" : used===1 ? "🥈 Silver" : "🥉 Bronze";
+    log(`🏆 You defeated the last King! Victory — ${medal} (Jesters used: ${used}).`);
+    alert(`Victory! ${medal} Victory.`);
+  }else{
+    log(`💀 You could not satisfy the enemy's damage. You lose.`);
+    alert("Defeat — you were unable to discard enough to survive.");
+  }
+  // Lock actions by disabling buttons
+  document.getElementById("playBtn").disabled = true;
+  document.getElementById("yieldBtn").disabled = true;
+  document.getElementById("flipJesterBtn").disabled = true;
+}
+
+function log(msg){
+  const el = document.getElementById("log");
+  const p = document.createElement("p");
+  p.innerHTML = msg;
+  el.appendChild(p);
+  el.scrollTop = el.scrollHeight;
+}
+
+function syncUI(skipScrollLog=false){
+  // Enemy card
+  const er = document.getElementById("enemyRank");
+  const es = document.getElementById("enemySuit");
+  er.textContent = state.enemy.rank;
+  es.textContent = state.enemy.suit;
+  const eCard = document.getElementById("enemyCard");
+  eCard.className = `card ${COLORS[state.enemy.suit]}`;
+
+  // Stats
+  const base = ENEMY_STATS[state.enemy.rank];
+  const hpLeft = Math.max(0, base.hp - state.enemyDamage);
+  document.getElementById("hpText").textContent = `${hpLeft}/${base.hp}`;
+  document.getElementById("atkText").textContent = `${Math.max(0, base.atk - state.spadeShield)} (${base.atk} base)`;
+  document.getElementById("immuneSuit").textContent = state.enemy.suit;
+  document.getElementById("spadeShield").textContent = state.spadeShield;
+  document.getElementById("damageSoFar").textContent = state.enemyDamage;
+  const hpPct = Math.max(0, Math.min(100, Math.round((base.hp - hpLeft)/base.hp*100)));
+  document.getElementById("hpBar").style.width = `${hpPct}%`;
+
+  // Counts
+  document.getElementById("tavernCount").textContent = state.tavern.length;
+  document.getElementById("castleCount").textContent = state.castle.length;
+  document.getElementById("discardCount").textContent = state.discard.length;
+  document.getElementById("jesterFlips").textContent = state.jesterFlips;
+
+  // Hand
+  const handEl = document.getElementById("hand");
+  handEl.innerHTML = "";
+  document.getElementById('handCount').textContent = state.hand.length;
+  document.getElementById('handEmptyHint').style.display = state.hand.length ? 'none' : 'block';
+  for(const c of state.hand){
+    const d = renderCard(c);
+    if(state.selectedIds.includes(c.id)) d.classList.add("selected");
+    d.addEventListener("click", ()=>{
+      if(!canSelect(c)) return;
+      const idx = state.selectedIds.indexOf(c.id);
+      if(idx>=0) state.selectedIds.splice(idx,1); else state.selectedIds.push(c.id);
+      syncUI(true);
+    }, {passive:true});
+    handEl.appendChild(d);
+  }
+
+  // Buttons
+  document.getElementById("flipJesterBtn").disabled = state.jesterFlips<=0;
+}
+
+document.getElementById("newGameBtn").addEventListener("click", ()=>{ history=[]; newGame() }, {passive:true});
+document.getElementById("playBtn").addEventListener("click", playSelected, {passive:false});
+document.getElementById("yieldBtn").addEventListener("click", yieldTurn, {passive:false});
+document.getElementById("flipJesterBtn").addEventListener("click", flipJester, {passive:false});
+document.getElementById("undoBtn").addEventListener("click", undo, {passive:false});
+document.getElementById("rulesBtn").addEventListener("click", ()=>{
+  alert("Rules highlights (solo):
+\
+
+\
+• Castle deck: 4 J, then 4 Q, then 4 K (each group shuffled). Reveal top.
+\
+• Tavern deck: 2–10 + 4 Aces. No Jesters in the deck for solo.
+\
+• Hand limit: 8.
+\
+
+\
+Turn order:
+\
+1) Play a card OR a valid combo (same-rank set totaling ≤10) OR a single card paired with one Ace (A=Animal Companion, value 1).
+\
+2) Apply suit powers at TOTAL attack:
+\
+   ♥ Heal: move that many from discard to BOTTOM of Tavern.
+\
+   ♦ Draw: draw that many cards (up to hand limit; no penalty if empty).
+\
+   ♣ Double: damage is doubled this turn.
+\
+   ♠ Shield: reduce enemy Attack by that amount (persists vs this enemy).
+\
+   (Matching-suit powers are blocked by the enemy's immunity.)
+\
+3) Deal damage. If enemy HP reaches exactly 0, put the defeated royal on TOP of Tavern; otherwise to discard. Reveal the next enemy and immediately take the next turn (skip suffering damage).
+\
+4) If the enemy survives, suffer damage: discard cards with total value ≥ enemy Attack after shields (A=1; J/Q/K in hand count as 10/15/20). If you cannot, you lose.
+\
+
+\
+Solo Jester flips (2× per game): at the start of Step 1 OR at the start of Step 4, you may discard your hand and refill to 8. This does not count as ♦ drawing and does NOT cancel immunity.
+\
+
+\
+Source: Official Regicide Rules PDF.");
+}, {passive:false});
+
+// Start after DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  newGame();
+});
+
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+</script>
+
+</body>
+</html>
